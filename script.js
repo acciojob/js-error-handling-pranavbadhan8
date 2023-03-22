@@ -1,44 +1,81 @@
-//your code here
 class OutOfRangeError extends Error {
-  constructor(arg) {
-    super(`Expression should only consist of integers and +-/* characters and not ${arg}`);
+  constructor(args) {
+    super();
     this.name = "OutOfRangeError";
+    this.message =
+      "Expression should only consist of integers and +-/* characters and not '" +
+      args +
+      "' ";
   }
 }
 
 class InvalidExprError extends Error {
   constructor() {
-    super("Expression should not have an invalid combination of expression");
+    super();
     this.name = "InvalidExprError";
+    this.message =
+      "Expression should not have an invalid combination of expression";
   }
 }
 
-function evalString(expression) {
+function evalString() {
+  let str = document.getElementById("input1").value;
   try {
-    if (/^\s*[\+\-\*/]/.test(expression)) {
-      throw new SyntaxError("Expression should not start with invalid operator");
+    for (let i = 0; i < str.length; i++) {
+      if (
+        [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "+",
+          "/",
+          " ",
+          "-",
+          "*",
+        ].includes(str[i]) == false
+      ) {
+        throw new OutOfRangeError(str[i]);
+      }
     }
-    if (/[\+\-\*/]\s*$/.test(expression)) {
+    str.replace(" ", "");
+    if (["+", "*", "/"].includes(str[0])) {
+      throw new SyntaxError(
+        "Expression should not start with invalid operator"
+      );
+    }
+    if (["+", "*", "/", "-"].includes(str[str.length - 1])) {
       throw new SyntaxError("Expression should not end with invalid operator");
     }
-    if (/[^\d\s\+\-\*/]/.test(expression)) {
-      throw new OutOfRangeError(expression.match(/[^\d\s\+\-\*/]/)[0]);
+    for (let i = 1; i < str.length - 1; i++) {
+      if (
+        (["+", "/", "-", "*"].includes(str[i - 1]) &&
+          ["+", "/", "*"].includes(str[i])) ||
+        (["+", "/", "-", "*"].includes(str[i - 1]) &&
+          str[i] == "-" &&
+          ["+", "-", "/", "*"].includes(str[i + 1]))
+      ) {
+        throw new InvalidExprError(
+          "Bad expression, Expression should not consist of an invalid sequence of operation"
+        );
+      }
     }
-    if (/\+\+|\-\-|\*\*|\/\/|\/\+|\+\//.test(expression)) {
-
- throw new InvalidExprError();
-    }
-    return eval(expression);
-  } catch (err) {
-    if (err instanceof OutOfRangeError || err instanceof InvalidExprError) {
-      throw err;
-    } else {
-      throw new SyntaxError(`Invalid expression: ${err.message}`);
+    alert("passed");
+  } catch (e) {
+    alert("failed " + e.name + " " + e.message);
+    if (window.Cypress) {
+      throw e;
     }
   }
 }
-try {
-  console.log(evalString("1 + 2 * 3"));
-} catch (err) {
-  console.log(err);
+
+if (window.Cypress) {
+  window.OutOfRangeError = OutOfRangeError;
+  window.InvalidExprError = InvalidExprError;
 }
